@@ -1,72 +1,70 @@
 import csv
+import tracemalloc
 from collections import Counter, defaultdict
 from readrides import read_rides_as_slots_classes
+
 
 # A function that reads a file into a list of dicts
 def read_portfolio(filename):
     portfolio = []
     with open(filename) as f:
-        rows = csv.reader(f)
-        headers = next(rows)
-        for row in rows:
+        lines = csv.reader(f)
+        headers = next(lines)
+        for line in lines:
             record = {
-                'name': row[0],
-                'shares': int(row[1]),
-                'price': float(row[2])
+                'name': line[0],
+                'shares': int(line[1]),
+                'price': float(line[2])
             }
             portfolio.append(record)
     return portfolio
 
 
-# Task 1
-# with open('Data/ctabus.csv') as f:
-#     rows = csv.reader(f)
-#     header = next(rows)
-#     routes = defaultdict(list)
-#     for r in rows:
-#         routes['routes'].append(r[0])
-#
-# print(len(set(routes['routes'])))
+tracemalloc.start()
+
+rows = read_rides_as_slots_classes('Data/ctabus.csv')
+
+# Task 1  How many bus routes are in Chicago?
+routes = []
+for r in rows:
+    routes.append(r.route)
+print('Task 1', len(set(routes)))
 
 
-# Task 2
-# def people_by_route(number, date):
-#     rows = read_rides_as_slots_classes('Data/ctabus.csv')
-#     for row in rows:
-#         if row.route == str(number) and row.date == date:
-#             print(row.rides)
-#
-#
-# people_by_route(22, '02/02/2011')
+# Task 2  How many people rode route 22 on February 2, 2011?
+by_route_date = {}
+for row in rows:
+    by_route_date[row.route, row.date] = row.rides
 
 
-# Task 3
-# with open('Data/ctabus.csv') as f:
-#     rows = csv.reader(f)
-#     header = next(rows)
-#     total = Counter()
-#     for r in rows:
-#         total[r[0]] += int(r[3])
-#
-# print(total)
+def people_by_route(bus_num, date):
+    return by_route_date[str(bus_num), date]
 
 
-# Task 4
-with open('Data/ctabus.csv') as f:
-    rows = csv.reader(f)
-    header = next(rows)
-    people_by_year = dict()
-    for r in rows:
-        people_by_year[r[0]] = {}
-    for k in people_by_year:
-        people_by_year[k] = Counter()
+print('Task 2', people_by_route(22, '02/02/2011'))
 
-with open('Data/ctabus.csv') as f:
-    rows = csv.reader(f)
-    header = next(rows)
-    for r in rows:
-        number = r[0]
-        year = r[1][-4:]
-        people_by_year[number][year] += int(r[3])
 
-print(people_by_year)
+# Task 3  Total number of rides per route
+total = Counter()
+for r in rows:
+    total[r.route] += int(r.rides)
+
+print('Task 3')
+for route, count in total.most_common(5):
+    print(f"{route:>8} {count:10}")
+print('----------------------------')
+
+
+# Task 4  Routes with the greatest increase in ridership 2001 - 2011
+rides_by_year = defaultdict(Counter)
+for r in rows:
+    year = r.date.split('/')[2]
+    rides_by_year[year][r.route] += r.rides
+
+diffs = rides_by_year['2011'] - rides_by_year['2001']
+print('Task 4')
+for route, rides in diffs.most_common(5):
+    print(f'Route: {route:>4} - {rides:7} rides more')
+
+
+print('Memory Use: Current %d, Peak %d' % tracemalloc.get_traced_memory())
