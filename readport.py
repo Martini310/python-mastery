@@ -2,6 +2,8 @@ import csv
 import tracemalloc
 from collections import Counter, defaultdict
 from readrides import read_rides_as_classes, read_rides_as_dictionaries
+from reader import read_csv_as_columns
+from sys import intern
 
 
 # A function that reads a file into a list of dicts
@@ -22,7 +24,8 @@ def read_portfolio(filename):
 
 tracemalloc.start()
 
-rows = read_rides_as_dictionaries('Data/ctabus.csv')
+# rows = read_rides_as_dictionaries('Data/ctabus.csv')
+rows = read_csv_as_columns('Data/ctabus.csv', [intern, intern, intern, int])
 
 # Task 1  How many bus routes are in Chicago?
 routes = []

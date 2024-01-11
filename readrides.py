@@ -15,17 +15,33 @@ class RideData(abc.Sequence):
         return len(self.routes)
 
     def __getitem__(self, index):
-        print(index)
-        return {'route': self.routes[index],
-                'date': self.dates[index],
-                'daytype': self.daytypes[index],
-                'rides': self.numrides[index]}
+        if isinstance(index, slice):
+            return [{
+                'route': self.routes[n],
+                'date': self.dates[n],
+                'daytype': self.daytypes[n],
+                'rides': self.numrides[n]
+            }
+                for n in range(*index.indices(len(self)))
+            ]
+        else:
+            return {'route': self.routes[index],
+                    'date': self.dates[index],
+                    'daytype': self.daytypes[index],
+                    'rides': self.numrides[index]}
 
     def append(self, d):
         self.routes.append(d['route'])
         self.dates.append(d['date'])
         self.daytypes.append(d['daytype'])
         self.numrides.append(d['rides'])
+
+
+a = RideData()
+a.append({'route': '3', 'date': '01/01/2001', 'daytype': 'U', 'rides': 7354})
+a.append({'route': '4', 'date': '01/01/2001', 'daytype': 'U', 'rides': 3245})
+a.append({'route': '5', 'date': '01/01/2001', 'daytype': 'U', 'rides': 6322354})
+a.append({'route': '6', 'date': '01/01/2001', 'daytype': 'U', 'rides': 112424})
 
 
 def read_rides_as_tuples(filename):
@@ -35,7 +51,7 @@ def read_rides_as_tuples(filename):
     records = []
     with open(filename) as f:
         rows = csv.reader(f)
-        headings = next(rows)     # Skip headers
+        headings = next(rows)  # Skip headers
         for row in rows:
             route = row[0]
             date = row[1]
@@ -53,7 +69,7 @@ def read_rides_as_dictionaries(filename):
     records = RideData()
     with open(filename) as f:
         rows = csv.reader(f)
-        headings = next(rows)     # Skip headers
+        headings = next(rows)  # Skip headers
         for row in rows:
             record = {
                 'route': row[0],
@@ -80,7 +96,7 @@ def read_rides_as_classes(filename):
     records = []
     with open(filename) as f:
         rows = csv.reader(f)
-        headings = next(rows)     # Skip headers
+        headings = next(rows)  # Skip headers
         for row in rows:
             route = row[0]
             date = row[1]
@@ -99,7 +115,7 @@ def read_rides_as_namedtuples(filename):
     records = []
     with open(filename) as f:
         rows = csv.reader(f)
-        headings = next(rows)     # Skip headers
+        headings = next(rows)  # Skip headers
         for row in rows:
             route = row[0]
             date = row[1]
@@ -127,7 +143,7 @@ def read_rides_as_slots_classes(filename):
     records = []
     with open(filename) as f:
         rows = csv.reader(f)
-        headings = next(rows)     # Skip headers
+        headings = next(rows)  # Skip headers
         for row in rows:
             route = row[0]
             date = row[1]
@@ -148,7 +164,7 @@ def read_rides_as_columns(filename):
     numrides = []
     with open(filename) as f:
         rows = csv.reader(f)
-        headings = next(rows)     # Skip headers
+        headings = next(rows)  # Skip headers
         for row in rows:
             routes.append(row[0])
             dates.append(row[1])
@@ -156,9 +172,8 @@ def read_rides_as_columns(filename):
             numrides.append(int(row[3]))
     return dict(routes=routes, dates=dates, daytypes=daytypes, numrides=numrides)
 
-
-if __name__ == '__main__':
-    import tracemalloc
-    tracemalloc.start()
-    rows = read_rides_as_columns('Data/ctabus.csv')
-    print('Memory Use: Current %d, Peak %d' % tracemalloc.get_traced_memory())
+# if __name__ == '__main__':
+#     import tracemalloc
+#     tracemalloc.start()
+#     rows = read_rides_as_dictionaries('Data/ctabus.csv')
+#     print('Memory Use: Current %d, Peak %d' % tracemalloc.get_traced_memory())
