@@ -1,8 +1,60 @@
+import csv
+
+
 class Stock:
+    types = (str, int, float)
+
     def __init__(self, name, shares, price):
         self.name = name
         self.shares = shares
         self.price = price
 
+    @classmethod
+    def from_row(cls, row):
+        values = [func(val) for func, val in zip(cls.types, row)]
+        return cls(*values)
+
     def cost(self):
         return self.shares * self.price
+
+    def sell(self, nshares):
+        self.shares -= nshares
+
+
+def read_portfolio(filename, cls):
+    output = []
+    with open(filename) as f:
+        file = csv.reader(f)
+        headers = next(file)
+        for row in file:
+            output.append(cls.from_row(row))
+    return output
+
+
+def print_portfolio(portfolio):
+    print('%10s %10s %10s' % ('name', 'shares', 'price'))
+    print(('-'*10 + ' ')*3)
+
+    for s in portfolio:
+        print(f'{s.name:>10} {s.shares:>10} {s.price:>10}')
+
+
+from decimal import Decimal
+
+
+class DStock(Stock):
+    types = (str, int, Decimal)
+
+
+if __name__ == '__main__':
+    portfolio = read_portfolio('Data/portfolio.csv', DStock)
+    print_portfolio(portfolio)
+    a = Stock('test', 22, 1)
+    row = ['AA', '100', '32.20']
+    s = DStock.from_row(row)
+    print(s.name)
+    print(s.shares)
+    print(s.price)
+    print(s.cost())
+
+
