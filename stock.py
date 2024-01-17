@@ -1,4 +1,3 @@
-import csv
 
 
 class Stock:
@@ -10,6 +9,14 @@ class Stock:
         self.name = name
         self.shares = shares
         self.price = price
+
+    def __repr__(self):
+        # Note: The !r format code produces the repr() string
+        return f"{type(self).__name__}({self.name!r}, {self.shares!r}, {self.price!r})"
+
+    def __eq__(self, other):
+        return isinstance(other, Stock) and ((self.name, self.shares, self.price) ==
+                                             (other.name, other.shares, other.price))
 
     @property
     def shares(self):
@@ -66,21 +73,15 @@ def print_portfolio(portfolio):
         print(f'{s.name:>10} {s.shares:>10} {s.price:>10}')
 
 
-from decimal import Decimal
-
-
 class DStock(Stock):
+    from decimal import Decimal
     types = (str, int, Decimal)
 
 
 if __name__ == '__main__':
-    portfolio = read_portfolio('Data/portfolio.csv', DStock)
-    print_portfolio(portfolio)
-    a = Stock('test', 22, 1.9)
-    row = ['AA', '100', '32.20']
-    s = DStock.from_row(row)
-    print(s.name)
-    print(s.shares)
-    print(s.price)
-    print(s.cost)
+    import reader
+    from tableformat import create_formatter, print_table
 
+    portfolio = reader.read_csv_as_instances('../../Data/portfolio.csv', Stock)
+    formatter = create_formatter('text')
+    print_table(portfolio, ['name', 'shares', 'price'], formatter)
