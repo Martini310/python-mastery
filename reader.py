@@ -1,76 +1,64 @@
 import csv
-from collections import abc
+from abc import ABC, abstractmethod
 import tracemalloc
-from sys import intern
 
 
-def read_csv_as_dicts(filename, coltypes):
+class CSVParser(ABC):
+
+    def parse(self, filename):
+        records = []
+        with open(filename) as f:
+            rows = csv.reader(f)
+            headers = next(rows)
+            for row in rows:
+                record = self.make_record(headers, row)
+                records.append(record)
+        return records
+
+    @abstractmethod
+    def make_record(self, headers, row):
+        pass
+
+
+class DictCSVParser(CSVParser):
+    def __init__(self, types):
+        self.types = types
+
+    def make_record(self, headers, row):
+        return {name: func(val) for name, func, val in zip(headers, self.types, row)}
+
+
+class InstanceCSVParser(CSVParser):
+    def __init__(self, cls):
+        self.cls = cls
+
+    def make_record(self, headers, row):
+        return self.cls.from_row(row)
+
+
+def read_csv_as_dicts(filename, types):
     """
     Read a CSV file with column type conversion
     """
-    records = []
-    with open(filename) as f:
-        file = csv.reader(f)
-        headers = next(file)
-        for row in file:
-            records.append({name: func(val) for name, func, val in zip(headers, coltypes, row)})
-        return records
-
-
-def read_csv_as_columns(filename, types=None):
-    with open(filename) as f:
-        file = csv.reader(f)
-        headers = next(file)
-        records = DataCollection(headers)
-        for line in file:
-            records.append({name: func(val) for name, val, func in zip(headers, line, types)})
-        return records
+    parser = DictCSVParser(types)
+    return parser.parse(filename)
 
 
 def read_csv_as_instances(filename, cls):
-    '''
+    """
     Read a CSV file into a list of instances
-    '''
-    records = []
-    with open(filename) as f:
-        rows = csv.reader(f)
-        headers = next(rows)
-        for row in rows:
-            records.append(cls.from_row(row))
-    return records
-
-
-class DataCollection(abc.Sequence):
-    def __init__(self, colnames):
-        self.colnames = colnames
-        for name in colnames:
-            setattr(self, name, [])
-
-    def __len__(self):
-        col = getattr(self, self.colnames[0], [])
-        return len(col)
-
-    def __getitem__(self, item):
-        return {
-            attr: getattr(self, attr)[item] for attr in self.colnames
-        }
-
-    def append(self, d):
-        for key, value in d.items():
-            getattr(self, key).append(value)
+    """
+    parser = InstanceCSVParser(cls)
+    return parser.parse(filename)
 
 
 if __name__ == '__main__':
-
-    portfolio = read_csv_as_columns('Data/portfolio.csv', [str,int,float])
+    portfolio = read_csv_as_dicts('Data/portfolio.csv', [str, int, float])
     print(portfolio)
     print(len(portfolio))
     print(portfolio[0])
 
     tracemalloc.start()
-    data = read_csv_as_columns('Data/ctabus.csv', types=[intern, intern, intern, int])
-    print(data)
-    print(len(data))
-    print(data[0])
-    print(data[1])
+    parser = DictCSVParser([str, int, float])
+    port = parser.parse('Data/portfolio.csv')
     print(tracemalloc.get_traced_memory())
