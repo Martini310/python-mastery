@@ -59,7 +59,7 @@ class HTMLTableFormatter(TableFormatter):
         print('</tr>')
 
 
-def create_formatter(name):
+def create_formatter(name, column_formats=None, upper_headers=False):
     if name == 'text':
         formatter_cls = TextTableFormatter
     elif name == 'csv':
@@ -68,10 +68,38 @@ def create_formatter(name):
         formatter_cls = HTMLTableFormatter
     else:
         raise RuntimeError('Unknown format %s' % name)
+
+    if upper_headers:
+        class formatter_cls(UpperHeadersMixin, formatter_cls):
+            pass
+
+    if column_formats:
+        class formatter_cls(ColumnFormatMixin, formatter_cls):
+            formats = column_formats
+
     return formatter_cls()
+
+
+class ColumnFormatMixin:
+    formats = []
+
+    def row(self, rowdata):
+        rowdata = [(fmt % d) for fmt, d in zip(self.formats, rowdata)]
+        super().row(rowdata)
+
+
+class UpperHeadersMixin:
+    def headings(self, headers):
+        super().headings([h.upper() for h in headers])
 
 
 if __name__ == '__main__':
     portfolio = reader.read_csv_as_instances('Data/portfolio.csv', Stock)
     formatter = create_formatter('csv')
+    print_table(portfolio, ['name', 'shares', 'price'], formatter)
+
+    formatter = create_formatter('text', upper_headers=True)
+    print_table(portfolio, ['name','shares','price'], formatter)
+
+    formatter = create_formatter('html', column_formats=['"%s"', '%d', '%0.4f'])
     print_table(portfolio, ['name', 'shares', 'price'], formatter)
