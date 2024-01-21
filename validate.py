@@ -1,7 +1,16 @@
 class Validator:
+    def __init__(self, name=None):
+        self.name = name
+
+    def __set_name__(self, cls, name):
+        self.name = name
+
     @classmethod
     def check(cls, value):
         return value
+
+    def __set__(self, instance, value):
+        instance.__dict__[self.name] = self.check(value)
 
 
 class Typed(Validator):
@@ -53,48 +62,31 @@ class NonEmptyString(String, NonEmpty):
     pass
 
 
-class Stock:
-    _types = (str, int, float)
+if __name__ == '__main__':
+    class Stock:
+        name = String()
+        shares = PositiveInteger()
+        price = PositiveFloat()
 
-    __slots__ = ('name', '_shares', '_price')
+        def __init__(self, name, shares, price):
+            self.name = name
+            self.shares = shares
+            self.price = price
 
-    def __init__(self, name, shares, price):
-        self.name = name
-        self.shares = shares
-        self.price = price
+        def __repr__(self):
+            # Note: The !r format code produces the repr() string
+            return f"{type(self).__name__}({self.name!r}, {self.shares!r}, {self.price!r})"
 
-    def __repr__(self):
-        # Note: The !r format code produces the repr() string
-        return f"{type(self).__name__}({self.name!r}, {self.shares!r}, {self.price!r})"
+        @property
+        def cost(self):
+            return self.shares * self.price
 
-    def __eq__(self, other):
-        return isinstance(other, Stock) and ((self.name, self.shares, self.price) ==
-                                             (other.name, other.shares, other.price))
+        def sell(self, nshares):
+            self.shares -= nshares
 
-    @property
-    def shares(self):
-        return self._shares
 
-    @shares.setter
-    def shares(self, value):
-        self._shares = PositiveInteger.check(value)
-
-    @property
-    def price(self):
-        return self._price
-
-    @price.setter
-    def price(self, value):
-        self._price = PositiveFloat.check(value)
-
-    @classmethod
-    def from_row(cls, row):
-        values = [func(val) for func, val in zip(cls._types, row)]
-        return cls(*values)
-
-    @property
-    def cost(self):
-        return self.shares * self.price
-
-    def sell(self, nshares):
-        self.shares -= nshares
+    s = Stock('GOOG', 100, 490.10)
+    print(s.name)
+    print(s.shares)
+    s.shares = 33
+    print(s.shares)
