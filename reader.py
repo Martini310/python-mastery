@@ -58,7 +58,7 @@ def read_csv_as_dicts(filename: str, types: List[object], headers: List[str] = N
     Read CSV data into a list of dictionaries with optional type conversion
     '''
     with open(filename) as file:
-        csv_as_dicts(file, types, headers)
+        return csv_as_dicts(file, types, headers=headers)
 
 
 def csv_as_dicts(lines: Iterable, types: List[object], headers: List[str] = None) -> List[dict]:
@@ -76,17 +76,19 @@ def csv_as_dicts(lines: Iterable, types: List[object], headers: List[str] = None
     return records
 
 
-def csv_as_instances(lines, cls):
+def csv_as_instances(lines, cls, *, headers=None):
     '''
     Convert lines of CSV data into a list of instances
     '''
     records = []
     rows = csv.reader(lines)
-    headers = next(rows)
+    if headers is None:
+        headers = next(rows)
     for row in rows:
         record = cls.from_row(row)
         records.append(record)
     return records
+
 
 
 if __name__ == '__main__':
