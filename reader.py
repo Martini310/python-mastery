@@ -86,14 +86,6 @@ def convert_csv(lines, converter, *, headers=None):
 
 
 if __name__ == '__main__':
-    # portfolio = read_csv_as_dicts('Data/portfolio.csv', [str, int, float])
-    # print(portfolio)
-    # print(len(portfolio))
-    # print(portfolio[0])
-    #
-    # import stock
-    # port = read_csv_as_instances('Data/portfolio.csv', stock.Stock)
-    # print(port)
     # tracemalloc.start()
     # parser = DictCSVParser([str, int, float])
     # port = parser.parse('Data/portfolio.csv')
@@ -115,3 +107,6 @@ if __name__ == '__main__':
 
     lines = open('Data/portfolio.csv')
     print(convert_csv(lines, make_dict))
+
+
+
