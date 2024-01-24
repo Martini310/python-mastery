@@ -2,6 +2,9 @@ import csv
 from typing import List, Iterable
 from abc import ABC, abstractmethod
 import tracemalloc
+import logging
+
+log = logging.getLogger(__name__)
 
 
 class CSVParser(ABC):
@@ -79,10 +82,18 @@ def csv_as_dicts(lines, types, *, headers=None):
 
 
 def convert_csv(lines, converter, *, headers=None):
+    records = []
     rows = csv.reader(lines)
     if headers is None:
         headers = next(rows)
-    return list(map(lambda x: converter(headers, x), rows))
+    for i, row in enumerate(rows, start=1):
+        try:
+            records.append(converter(headers, row))
+        except ValueError as e:
+            log.warning(f'Row {i}: Bad row: {row}')
+            log.debug(f'Row {i}: Reason: {e}')
+    return records
+    # return list(map(lambda x: converter(headers, x), rows))
 
 
 if __name__ == '__main__':
@@ -107,6 +118,9 @@ if __name__ == '__main__':
 
     lines = open('Data/portfolio.csv')
     print(convert_csv(lines, make_dict))
+    logging.basicConfig(level=logging.DEBUG)
+    port = read_csv_as_dicts('Data/missing.csv', types=[str, int, float])
+    print(len(port))
 
 
 
