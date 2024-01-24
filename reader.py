@@ -45,50 +45,44 @@ class InstanceCSVParser(CSVParser):
 #     return parser.parse(filename)
 #
 #
-def read_csv_as_instances(filename, cls):
+# def read_csv_as_instances(filename, cls):
+#     """
+#     Read a CSV file into a list of instances
+#     """
+#     parser = InstanceCSVParser(cls)
+#     return parser.parse(filename)
+
+def read_csv_as_instances(filename, cls, *, headers=None):
     """
-    Read a CSV file into a list of instances
+    Read CSV data into a list of instances
     """
-    parser = InstanceCSVParser(cls)
-    return parser.parse(filename)
+    with open(filename) as file:
+        return csv_as_instances(file, cls, headers=headers)
 
 
 def read_csv_as_dicts(filename: str, types: List[object], headers: List[str] = None):
-    '''
+    """
     Read CSV data into a list of dictionaries with optional type conversion
-    '''
+    """
     with open(filename) as file:
         return csv_as_dicts(file, types, headers=headers)
 
 
-def csv_as_dicts(lines: Iterable, types: List[object], headers: List[str] = None) -> List[dict]:
-    '''
-    Convert lines of CSV data into a list of dictionaries
-    '''
-    records = []
-    rows = csv.reader(lines)
-    if headers is None:
-        headers = next(rows)
-    for row in rows:
-        record = { name: func(val)
-                   for name, func, val in zip(headers, types, row) }
-        records.append(record)
-    return records
-
-
 def csv_as_instances(lines, cls, *, headers=None):
-    '''
-    Convert lines of CSV data into a list of instances
-    '''
-    records = []
+    return convert_csv(lines,
+                       lambda headers, row: cls.from_row(row))
+
+
+def csv_as_dicts(lines, types, *, headers=None):
+    return convert_csv(lines,
+                       lambda headers, row: {name: func(val) for name, func, val in zip(headers, types, row)})
+
+
+def convert_csv(lines, converter, *, headers=None):
     rows = csv.reader(lines)
     if headers is None:
         headers = next(rows)
-    for row in rows:
-        record = cls.from_row(row)
-        records.append(record)
-    return records
-
+    return list(map(lambda x: converter(headers, x), rows))
 
 
 if __name__ == '__main__':
@@ -114,3 +108,10 @@ if __name__ == '__main__':
     file = gzip.open('Data/portfolio.csv.gz', 'rt')
     port = csv_as_instances(file, stock.Stock)
     print(port)
+
+
+    def make_dict(headers, row):
+        return dict(zip(headers, row))
+
+    lines = open('Data/portfolio.csv')
+    print(convert_csv(lines, make_dict))
