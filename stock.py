@@ -15,6 +15,8 @@ class Stock(Structure):
         self.shares -= nshares
 
 
+Stock.set_fields()
+
 if __name__ == '__main__':
 
     s = Stock(name='GOOG', price=490.1, shares=50)

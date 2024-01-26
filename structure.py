@@ -1,4 +1,5 @@
 import sys
+import inspect
 
 
 class Structure:
@@ -21,22 +22,15 @@ class Structure:
         else:
             raise AttributeError(f'No attribute {name}')
 
+    @classmethod
+    def set_fields(cls):
+        sig = inspect.signature(cls)
+        cls._fields = tuple(sig.parameters)
 
-class Stock(Structure):
-    _fields = ('name','shares','price')
-
-
-class Date(Structure):
-    _fields = ('year', 'month', 'day')
 
 
 if __name__ == '__main__':
-    s = Stock('GOOG', 100, 490.1)
-    print(s.name)
-    print(s.shares)
-    print(s.price)
-    # s = Stock('AA',50)
-    print(repr(s))
-    s.shares = 50
-    s.share = 50
-    s._shares = 100
+
+    def add(x, y):
+        """Adds two things"""
+        return x + y
