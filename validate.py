@@ -15,6 +15,7 @@ class Validator:
 
 class Typed(Validator):
     expected_type = object
+
     @classmethod
     def check(cls, value):
         if not isinstance(value, cls.expected_type):
@@ -62,31 +63,34 @@ class NonEmptyString(String, NonEmpty):
     pass
 
 
+from inspect import signature
+
+
+class ValidatedFunction:
+    def __init__(self, func):
+        self.func = func
+        self.signature = signature(func)
+        self.annotations = dict(func.__annotations__)
+        self.retcheck = self.annotations.pop('return', None)
+
+    def __call__(self, *args, **kwargs):
+        bound = self.signature.bind(*args, **kwargs)
+
+        for name, val in self.annotations.items():
+            val.check(bound.arguments[name])
+
+        result = self.func(*args, **kwargs)
+
+        if self.retcheck:
+            self.retcheck.check(result)
+
+        return result
+
+
 if __name__ == '__main__':
-    class Stock:
-        name = String()
-        shares = PositiveInteger()
-        price = PositiveFloat()
-
-        def __init__(self, name, shares, price):
-            self.name = name
-            self.shares = shares
-            self.price = price
-
-        def __repr__(self):
-            # Note: The !r format code produces the repr() string
-            return f"{type(self).__name__}({self.name!r}, {self.shares!r}, {self.price!r})"
-
-        @property
-        def cost(self):
-            return self.shares * self.price
-
-        def sell(self, nshares):
-            self.shares -= nshares
+    def add(x: Integer, y: Integer):
+        return x + y
 
 
-    s = Stock('GOOG', 100, 490.10)
-    print(s.name)
-    print(s.shares)
-    s.shares = 33
-    print(s.shares)
+    add = ValidatedFunction(add)
+    add(2, 2)

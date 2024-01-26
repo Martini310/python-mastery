@@ -41,4 +41,5 @@ if __name__ == '__main__':
 
     print(s[1])
     import inspect
-    print(inspect.getsource(namedtuple))
+    # print(inspect.getsource(namedtuple))
+    print(inspect.signature(add))
