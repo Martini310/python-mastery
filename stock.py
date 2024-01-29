@@ -1,4 +1,5 @@
 from structure import Structure
+from validate import validated
 
 
 class Stock(Structure):
@@ -8,6 +9,7 @@ class Stock(Structure):
     def cost(self):
         return self.shares * self.price
 
+    @validated
     def sell(self, nshares):
         self.shares -= nshares
 
@@ -23,4 +25,5 @@ if __name__ == '__main__':
     print(s.name)
     print(s.shares)
     # s.share = 234
+    s.sell(200)
 

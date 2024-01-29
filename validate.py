@@ -1,3 +1,6 @@
+from inspect import signature
+
+
 class Validator:
     def __init__(self, name=None):
         self.name = name
@@ -63,9 +66,6 @@ class NonEmptyString(String, NonEmpty):
     pass
 
 
-from inspect import signature
-
-
 class ValidatedFunction:
     def __init__(self, func):
         self.func = func
@@ -85,6 +85,34 @@ class ValidatedFunction:
             self.retcheck.check(result)
 
         return result
+
+
+def validated(func):
+    sig = signature(func)  # (x: validate.Integer, y: validate.Integer) -> validate.Integer
+    annotations = dict(func.__annotations__)  # {'x': <class 'validate.Integer'>, 'y': <class 'validate.Integer'>}
+    retcheck = annotations.pop('return', None)  # <class 'validate.Integer'>
+
+    def wrapper(*args, **kwargs):
+        bound = sig.bind(*args, **kwargs)
+        # bound.arguments  # {'x': '3', 'y': '4'}
+        errors = []
+        for name, validator in annotations.items():
+            try:
+                validator.check(bound.arguments.get(name))
+            except Exception as e:
+                errors.append(f'        {name}: {e}')
+        if errors:
+            raise TypeError(f"Bad arguments:\n" + '\n'.join(errors))
+
+        result = func(*args, **kwargs)
+        if retcheck:
+            try:
+                retcheck.check(result)
+            except Exception as e:
+                raise TypeError(f'Bad return: {e}')
+        return result
+
+    return wrapper
 
 
 if __name__ == '__main__':
