@@ -1,5 +1,5 @@
 from inspect import signature
-
+from functools import wraps
 
 class Validator:
     def __init__(self, name=None):
@@ -92,6 +92,7 @@ def validated(func):
     annotations = dict(func.__annotations__)  # {'x': <class 'validate.Integer'>, 'y': <class 'validate.Integer'>}
     retcheck = annotations.pop('return', None)  # <class 'validate.Integer'>
 
+    @wraps(func)
     def wrapper(*args, **kwargs):
         bound = sig.bind(*args, **kwargs)
         # bound.arguments  # {'x': '3', 'y': '4'}
@@ -115,6 +116,41 @@ def validated(func):
     return wrapper
 
 
+def enforce(**annotations):
+    retcheck = annotations.pop('return_', None)
+
+    def decorate(func):
+        sig = signature(func)
+
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            bound = sig.bind(*args, **kwargs)
+            errors = []
+
+            # Enforce argument checks
+            for name, validator in annotations.items():
+                try:
+                    validator.check(bound.arguments[name])
+                except Exception as e:
+                    errors.append(f'    {name}: {e}')
+
+            if errors:
+                raise TypeError('Bad Arguments\n' + '\n'.join(errors))
+
+            result = func(*args, **kwargs)
+
+            if retcheck:
+                try:
+                    retcheck.check(result)
+                except Exception as e:
+                    raise TypeError(f'Bad return: {e}') from None
+            return result
+
+        return wrapper
+
+    return decorate
+
+
 if __name__ == '__main__':
     def add(x: Integer, y: Integer):
         return x + y
@@ -122,3 +158,10 @@ if __name__ == '__main__':
 
     add = ValidatedFunction(add)
     add(2, 2)
+
+
+    @enforce(x=Integer, y=Integer, return_=Integer)
+    def add(x, y):
+        return x + y
+
+    print(add(2,'3'))
