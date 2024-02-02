@@ -1,29 +1,25 @@
-from structure import Structure
-from validate import validated
+from structure import Structure, validate_attributes
+from validate import validated, String, PositiveInteger, PositiveFloat
 
 
 class Stock(Structure):
-    _fields = ('name', 'shares', 'price')
+    name = String()
+    shares = PositiveInteger()
+    price = PositiveFloat()
 
     @property
     def cost(self):
         return self.shares * self.price
 
-    @validated
     def sell(self, nshares):
         self.shares -= nshares
 
 
-Stock.create_init()
+# Stock.create_init()
 
 if __name__ == '__main__':
-
-    s = Stock(name='GOOG', price=490.1, shares=50)
-    print(s.name)
-    print(s.shares)
-    s = Stock('GOOG', 490.1, 50)
-    print(s.name)
-    print(s.shares)
-    # s.share = 234
-    s.sell(200)
+    s = Stock.from_row(['GOOG', '100', '490.1'])
+    print(s)
+    import reader
+    port = reader.read_csv_as_instances('Data/portfolio.csv', Stock)
 
