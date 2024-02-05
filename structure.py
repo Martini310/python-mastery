@@ -67,5 +67,15 @@ class Structure:
         validate_attributes(cls)
 
 
+def typed_structure(clsname, **validators):
+    cls = type(clsname, (Structure,), validators)
+    return cls
+
+
 if __name__ == '__main__':
-    pass
+    from validate import String, PositiveInteger, PositiveFloat
+    Stock = typed_structure('Stock', name=String(), shares=PositiveInteger(), price=PositiveFloat())
+    s = Stock('GOOG', 100, 490.1)
+    print(s.name)
+    print(s)
+    Stock('GOOG', 100, 490.1)

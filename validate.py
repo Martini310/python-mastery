@@ -1,5 +1,6 @@
 from inspect import signature
 from functools import wraps
+from decimal import Decimal
 
 class Validator:
     def __init__(self, name=None):
@@ -26,16 +27,29 @@ class Typed(Validator):
         return super().check(value)
 
 
-class Integer(Typed):
-    expected_type = int
+# class Integer(Typed):
+#     expected_type = int
+#
+#
+# class Float(Typed):
+#     expected_type = float
+#
+#
+# class String(Typed):
+#     expected_type = str
 
 
-class Float(Typed):
-    expected_type = float
+_typed_classes = [
+    ('Integer', int),
+    ('Float', float),
+    ('Complex', complex),
+    ('Decimal', Decimal),
+    ('List', list),
+    ('Bool', bool),
+    ('String', str)]
 
-
-class String(Typed):
-    expected_type = str
+globals().update((name, type(name, (Typed,), {'expected_type':ty}))
+                 for name, ty in _typed_classes)
 
 
 class Positive(Validator):
