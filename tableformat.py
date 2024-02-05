@@ -1,4 +1,4 @@
-from stock import read_portfolio, Stock
+from stock import Stock
 import reader
 from abc import ABC, abstractmethod
 

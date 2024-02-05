@@ -2,7 +2,7 @@ import csv
 import tracemalloc
 from collections import Counter, defaultdict
 from readrides import read_rides_as_classes, read_rides_as_dictionaries
-from reader import read_csv_as_columns
+# from reader import read_csv_as_columns
 from sys import intern
 
 
