@@ -78,6 +78,13 @@ class Structure(metaclass=StructureMeta):
         # Apply the validated decorator to subclasses
         validate_attributes(cls)
 
+    def __iter__(self):
+        for name in self._fields:
+            yield getattr(self, name)
+
+    def __eq__(self, other):
+        return isinstance(other, type(self)) and tuple(self) == tuple(other)
+
 
 def typed_structure(clsname, **validators):
     cls = type(clsname, (Structure,), validators)
