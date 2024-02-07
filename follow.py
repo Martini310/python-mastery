@@ -15,7 +15,7 @@ def follow(filename):
 
 
 if __name__ == '__main__':
-    for line in follow('stocklog.csv'):
+    for line in follow('Data/stocklog.csv'):
         row = line.split(',')
         name = row[0].strip('"')
         price = float(row[1])
