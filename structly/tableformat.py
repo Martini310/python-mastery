@@ -1,5 +1,5 @@
 from stock import Stock
-import reader
+from . import reader
 from abc import ABC, abstractmethod
 
 
