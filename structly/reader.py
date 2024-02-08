@@ -5,6 +5,7 @@ import tracemalloc
 import logging
 
 log = logging.getLogger(__name__)
+__all__ = ['read_csv_as_instances', 'read_csv_as_dicts']
 
 
 class CSVParser(ABC):

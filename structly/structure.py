@@ -1,6 +1,8 @@
 from .validate import Validator, validated
 from collections import ChainMap
 
+__all__ = ['Structure']
+
 
 def validate_attributes(cls):
     """
