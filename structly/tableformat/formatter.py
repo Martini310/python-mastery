@@ -15,6 +15,13 @@ def print_table(records, fields, formatter):
 
 
 class TableFormatter(ABC):
+    _formats = {}
+
+    @classmethod
+    def __init_subclass__(cls):
+        name = cls.__module__.split('.')[-1]
+        TableFormatter._formats[name] = cls
+
     @abstractmethod
     def headings(self, headers):
         pass
@@ -24,19 +31,12 @@ class TableFormatter(ABC):
         pass
 
 
-from .formats.text import TextTableFormatter
-from .formats.csv import CSVTableFormatter
-from .formats.html import HTMLTableFormatter
-
-
 def create_formatter(name, column_formats=None, upper_headers=False):
-    if name == 'text':
-        formatter_cls = TextTableFormatter
-    elif name == 'csv':
-        formatter_cls = CSVTableFormatter
-    elif name == 'html':
-        formatter_cls = HTMLTableFormatter
-    else:
+    if name not in TableFormatter._formats:
+        __import__(f'{__package__}.formats.{name}')
+
+    formatter_cls = TableFormatter._formats.get(name)
+    if not formatter_cls:
         raise RuntimeError('Unknown format %s' % name)
 
     if upper_headers:
